@@ -1,0 +1,183 @@
+
+
+  Manage.py code
+
+
+      import tkinter as tk
+from tkinter import ttk, messagebox
+import mysql.connector
+
+# Database Connection
+conn = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="employeedb"
+)
+cursor = conn.cursor()
+
+
+# Insert function
+def insert_record():
+    name = name_var.get()
+    age = age_var.get()
+    department = dept_var.get()
+    tax_rate = tax_rate_var.get()
+    salary = salary_var.get()
+
+    if name and age and department and tax_rate and salary:
+        cursor.execute("INSERT INTO employees (name, age, department, tax_rate, salary) VALUES (%s, %s, %s, %s, %s)",
+                       (name, age, department, tax_rate, salary))
+        conn.commit()
+        fetch_records()
+        clear_fields()
+        messagebox.showinfo("Success", "Record inserted successfully!")
+    else:
+        messagebox.showerror("Error", "All fields are required!")
+
+
+# Update function
+def update_record():
+    id = id_var.get()
+    name = name_var.get()
+    age = age_var.get()
+    department = dept_var.get()
+    tax_rate = tax_rate_var.get()
+    salary = salary_var.get()
+
+    if id and name and age and department and tax_rate and salary:
+        cursor.execute("UPDATE employees SET name=%s, age=%s, department=%s, tax_rate=%s, salary=%s WHERE id=%s",
+                       (name, age, department, tax_rate, salary, id))
+        conn.commit()
+        fetch_records()
+        clear_fields()
+        messagebox.showinfo("Success", "Record updated successfully!")
+    else:
+        messagebox.showerror("Error", "All fields are required!")
+
+
+# Delete function
+def delete_record():
+    id = id_var.get()
+    if id:
+        cursor.execute("DELETE FROM employees WHERE id=%s", (id,))
+        conn.commit()
+        fetch_records()
+        clear_fields()
+        messagebox.showinfo("Success", "Record deleted successfully!")
+    else:
+        messagebox.showerror("Error", "ID is required!")
+
+# Fetch records
+def fetch_records():
+    cursor.execute("SELECT * FROM employees")
+    rows = cursor.fetchall()
+    for row in tree.get_children():
+        tree.delete(row)
+    for row in rows:
+        tree.insert("", tk.END, values=row)
+
+
+# Clear input fields
+def clear_fields():
+    id_var.set("")
+    name_var.set("")
+    age_var.set("")
+    dept_var.set("")
+    tax_rate_var.set("")
+    salary_var.set("")
+
+
+# Select record
+def select_record(event):
+    selected = tree.focus()
+    values = tree.item(selected, 'values')
+    if values:
+        id_var.set(values[0])
+        name_var.set(values[1])
+        age_var.set(values[2])
+        dept_var.set(values[3])
+        tax_rate_var.set(values[4])
+        salary_var.set(values[5])
+
+
+# GUI setup
+root = tk.Tk()
+root.title("Employee Management System")
+
+id_var = tk.StringVar()
+name_var = tk.StringVar()
+age_var = tk.StringVar()
+dept_var = tk.StringVar()
+tax_rate_var = tk.StringVar()
+salary_var = tk.StringVar()
+
+# Labels and Entry Widgets
+tk.Label(root, text="ID").grid(row=0, column=0, padx=10, pady=5)
+tk.Entry(root, textvariable=id_var, state='readonly').grid(sticky="w", row=0, column=1, padx=10, pady=5)
+
+tk.Label(root, text="Name").grid(row=1, column=0, padx=10, pady=5)
+tk.Entry(root, textvariable=name_var).grid(sticky="w", row=1, column=1, padx=10, pady=5)
+
+tk.Label(root, text="Age").grid(row=2, column=0, padx=10, pady=5)
+tk.Entry(root, textvariable=age_var).grid(sticky="w", row=2, column=1, padx=10, pady=5)
+
+tk.Label(root, text="Department").grid(row=3, column=0, padx=10, pady=5)
+tk.Entry(root, textvariable=dept_var).grid(sticky="w", row=3, column=1, padx=10, pady=5)
+
+tk.Label(root, text="Tax_Rate").grid(row=4, column=0, padx=10, pady=5)
+tk.Entry(root, textvariable=tax_rate_var).grid(sticky="w", row=4, column=1, padx=10, pady=5)
+
+tk.Label(root, text="Salary").grid(row=5, column=0, padx=10, pady=5)
+tk.Entry(root, textvariable=salary_var).grid(sticky="w", row=5, column=1, padx=10, pady=5)
+
+# Buttons
+tk.Button(root, text="Insert", command=insert_record).grid(row=6, column=0, padx=10, pady=10)
+tk.Button(root, text="Update", command=update_record).grid(row=6, column=1, padx=10, pady=10)
+tk.Button(root, text="Delete", command=delete_record).grid(row=6, column=2, padx=10, pady=10)
+tk.Button(root, text="Clear", command=clear_fields).grid(row=6, column=3, padx=10, pady=10)
+
+# Treeview for displaying records
+tree = ttk.Treeview(root, columns=("ID", "Name", "Age", "Department", "Tax_Rate", "Salary"), show='headings')
+tree.heading("ID", text="ID")
+tree.heading("Name", text="Name")
+tree.heading("Age", text="Age")
+tree.heading("Department", text="Department")
+tree.heading("Tax_Rate", text="Tax_Rate")
+tree.heading("Salary", text="Salary")
+tree.bind("<ButtonRelease-1>", select_record)
+tree.grid(row=8, column=0, columnspan=4, padx=10, pady=10)
+
+fetch_records()
+
+root.mainloop()
+
+
+
+
+
+
+
+  Calculate.py code
+
+
+  # Step 1 Define the employees and their gross salaries
+employees = {
+    'Alice': 60000,
+    'John': 80000,
+    'Tom': 90000,
+    'Sam': 50000
+}
+
+# Step 2 Define the tax rate (20%)
+tax_rate = 0.20
+
+# Step 3 Calculate the net salary for each employee
+def calculate_net_salary(gross_salary, tax_rate):
+    return gross_salary * (1 - tax_rate)
+
+# Step 4: Display the employee name and their net salary
+for employee, gross_salary in employees.items():
+    net_salary = calculate_net_salary(gross_salary, tax_rate)
+    print(f"Employee Name: {employee}, Gross Salary: {gross_salary}, Net Salary: {net_salary}")
+
